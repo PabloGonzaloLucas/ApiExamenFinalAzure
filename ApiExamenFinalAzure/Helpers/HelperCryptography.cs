@@ -10,26 +10,21 @@ namespace ApiExamenFinalAzure.Helpers
         private static string KeyCifrado;
         private static string ApiUrl;
         private static KeyVaultAccesorModel keyVaultSecrets;
+        private static SecretClient secretClient;
 
-        public static byte[] EncryptPassword(string password, string salt)
-        {
-            string contenido = password + salt;
-            SHA512 managed = SHA512.Create();
-            byte[] salida = Encoding.UTF8.GetBytes(contenido);
-            for (int i = 1; i <= 15; i++)
-            {
-                salida = managed.ComputeHash(salida);
-            }
-            managed.Clear();
-            return salida;
-        }
 
-        public static void Initialize(IConfiguration configuration, KeyVaultAccesorModel keyVaultSecret)
+ 
+
+        public static void Initialize(IConfiguration configuration, SecretClient client)
         {
-            //KeyCifrado = configuration.GetValue<string>("Cypher:Key")
-            keyVaultSecrets = keyVaultSecret;
-            KeyCifrado = keyVaultSecret.CypherKey;
-               
+            ////KeyCifrado = configuration.GetValue<string>("Cypher:Key")
+            //keyVaultSecrets = keyVaultSecret;
+            //KeyCifrado = keyVaultSecret.CypherKey;
+
+            secretClient = client;
+            KeyVaultSecret secretCypher = secretClient.GetSecret("secretkeycypherprueba");
+            KeyCifrado = secretCypher.Value;
+
         }
 
         public static string CifrarString(string data)

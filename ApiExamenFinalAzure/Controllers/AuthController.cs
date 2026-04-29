@@ -95,5 +95,7 @@ namespace ApiExamenFinalAzure.Controllers
             UserModel model = this.helperTokens.GetUsuario();
             return model;
         }
+
+
     }
 }

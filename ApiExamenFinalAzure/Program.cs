@@ -20,15 +20,30 @@ builder.Services.AddAzureClients(factory =>
 });
 
 SecretClient secretClient =
+    builder.Services.BuildServiceProvider()
+    .GetService<SecretClient>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<HelperUsuarioToken>();
+HelperCryptography.Initialize(builder.Configuration, secretClient);
+
+HelperActionOAuthService helper =
+    new HelperActionOAuthService(builder.Configuration, secretClient);
+
+builder.Services.AddSingleton<HelperActionOAuthService>(helper);
+
+builder.Services.AddAuthentication(helper.GetAuthenticationSchema())
+    .AddJwtBearer(helper.GetJWTBearerOptions());
+
+SecretClient secretClient2 =
     builder.Services.BuildServiceProvider().GetService<SecretClient>();
-KeyVaultSecret secretoStorage = await secretClient.GetSecretAsync("secretstorageexamenazurepgl");
-KeyVaultSecret secretoBlobsUrl = await secretClient.GetSecretAsync("secretblobfreeurlpgl");
-KeyVaultSecret secretoSqlConnectionString = await secretClient.GetSecretAsync("secretsqlstringexamenpgl");
+KeyVaultSecret secretoStorage = await secretClient2.GetSecretAsync("secretstorageexamenazurepgl");
+KeyVaultSecret secretoBlobsUrl = await secretClient2.GetSecretAsync("secretblobfreeurlpgl");
+KeyVaultSecret secretoSqlConnectionString = await secretClient2.GetSecretAsync("secretsqlstringexamenpgl");
 //KeyVaultSecret secretoCypherKey = await secretClient.GetSecretAsync("secretcypherkeyexamenpgl");
-KeyVaultSecret secretoCypherKey = await secretClient.GetSecretAsync("secretkeycypherprueba");
-KeyVaultSecret secretoSecretKey = await secretClient.GetSecretAsync("secretsecretkeyexamenpgl");
-KeyVaultSecret secretoIssuer = await secretClient.GetSecretAsync("secretissuerexamenpgl");
-KeyVaultSecret secretoAudience = await secretClient.GetSecretAsync("secretaudienceexamenpgl");
+KeyVaultSecret secretoCypherKey = await secretClient2.GetSecretAsync("secretkeycypherprueba");
+KeyVaultSecret secretoSecretKey = await secretClient2.GetSecretAsync("secretkeyprueba");
+KeyVaultSecret secretoIssuer = await secretClient2.GetSecretAsync("secretissuerexamenpgl");
+KeyVaultSecret secretoAudience = await secretClient2.GetSecretAsync("secretaudienceexamenpgl");
 
 var keyVaultSecrets = new KeyVaultAccesorModel
 {
@@ -42,17 +57,8 @@ var keyVaultSecrets = new KeyVaultAccesorModel
 };
 builder.Services.AddSingleton(keyVaultSecrets);
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<HelperUsuarioToken>();
-HelperCryptography.Initialize(builder.Configuration, keyVaultSecrets);
 
-HelperActionOAuthService helper =
-    new HelperActionOAuthService(builder.Configuration, keyVaultSecrets);
-
-builder.Services.AddSingleton<HelperActionOAuthService>(helper);
-
-builder.Services.AddAuthentication(helper.GetAuthenticationSchema())
-    .AddJwtBearer(helper.GetJWTBearerOptions());
+//HelperCryptography.Initialize(builder.Configuration, keyVaultSecrets);
 
 
 

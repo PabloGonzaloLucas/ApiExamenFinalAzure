@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 namespace ApiExamenFinalAzure.Helpers
 {
     public class HelperActionOAuthService
@@ -11,7 +12,9 @@ namespace ApiExamenFinalAzure.Helpers
         public string Issuer { get; set; }
         public string Audience { get; set; }
         public string SecretKey { get; set; }
-        private static KeyVaultAccesorModel keyVaultSecrets;
+        private SecretClient secretclient;
+
+        //private static KeyVaultAccesorModel keyVaultSecrets;
 
         //public HelperActionOAuthService(IConfiguration configuration)
         //{
@@ -22,20 +25,23 @@ namespace ApiExamenFinalAzure.Helpers
         //    this.SecretKey = configuration.GetValue<string>
         //        ("ApiOAuthToken:SecretKey");
         //}
-        public HelperActionOAuthService(IConfiguration configuration, KeyVaultAccesorModel keyVaultSecrets)
+        public HelperActionOAuthService(IConfiguration configuration, SecretClient client)
         {
-         
-            this.Issuer = keyVaultSecrets.Issuer;
-        
-            this.Audience = keyVaultSecrets.Audience;
-          
-            this.SecretKey = keyVaultSecrets.SecretKey;
+            this.secretclient = client;
+
+            KeyVaultSecret secretIssuer = this.secretclient.GetSecret("secretissuerexamenpgl");
+            this.Issuer = secretIssuer.Value;
+
+            KeyVaultSecret secretAudience = this.secretclient.GetSecret("secretaudienceexamenpgl");
+            this.Audience = secretAudience.Value;
+
+            KeyVaultSecret secretKey = this.secretclient.GetSecret("secretkeyprueba");
+            this.SecretKey = secretKey.Value;
         }
 
         public SymmetricSecurityKey GetKeyToken()
         {
-            byte[] data =
-                Encoding.UTF8.GetBytes(this.SecretKey);
+            byte[] data = Encoding.UTF8.GetBytes(this.SecretKey);
             return new SymmetricSecurityKey(data);
         }
 
@@ -44,6 +50,9 @@ namespace ApiExamenFinalAzure.Helpers
             Action<JwtBearerOptions> options =
                 new Action<JwtBearerOptions>(options =>
                 {
+                    // Helps surface the concrete reason for 401 responses during development/troubleshooting.
+                    options.IncludeErrorDetails = true;
+
                     options.TokenValidationParameters =
                     new TokenValidationParameters
                     {
@@ -53,7 +62,44 @@ namespace ApiExamenFinalAzure.Helpers
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = this.Issuer,
                         ValidAudience = this.Audience,
-                        IssuerSigningKey = this.GetKeyToken()
+                        IssuerSigningKey = this.GetKeyToken(),
+                        ClockSkew = TimeSpan.Zero
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            // Will show up in Application logs (Azure App Service) / console logs.
+                            context.Response.Headers["x-jwt-auth-failed"] = "true";
+                            context.Response.Headers["x-jwt-auth-error"] = context.Exception.GetType().Name;
+                            // Don't put exception messages in headers (can contain sensitive info).
+                            return Task.CompletedTask;
+                        },
+                        OnChallenge = context =>
+                        {
+                            // When a 401 is produced, capture the reason in logs.
+                            // NOTE: HandleResponse stays false so default 401 behavior remains.
+                            if (!string.IsNullOrEmpty(context.Error))
+                            {
+                                context.Response.Headers["x-jwt-challenge-error"] = context.Error;
+                            }
+
+                            if (!string.IsNullOrEmpty(context.ErrorDescription))
+                            {
+                                // ErrorDescription can be long; keep it minimal.
+                                context.Response.Headers["x-jwt-challenge-desc"] = context.ErrorDescription.Length > 120
+                                    ? context.ErrorDescription.Substring(0, 120)
+                                    : context.ErrorDescription;
+                            }
+
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = context =>
+                        {
+                            context.Response.Headers["x-jwt-token-validated"] = "true";
+                            return Task.CompletedTask;
+                        }
                     };
                 });
             return options;
