@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiExamenFinalAzure", "ApiExamenFinalAzure\ApiExamenFinalAzure.csproj", "{6664B0C6-3A84-4A6B-B135-71A2CED8448E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6664B0C6-3A84-4A6B-B135-71A2CED8448E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6664B0C6-3A84-4A6B-B135-71A2CED8448E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6664B0C6-3A84-4A6B-B135-71A2CED8448E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6664B0C6-3A84-4A6B-B135-71A2CED8448E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FA183A61-BC7B-4825-A6FD-9F50C8BC6885}
+	EndGlobalSection
+EndGlobal

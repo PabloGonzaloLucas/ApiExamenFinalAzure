@@ -1,0 +1,6 @@
+@ApiExamenFinalAzure_HostAddress = http://localhost:5002
+
+GET {{ApiExamenFinalAzure_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
