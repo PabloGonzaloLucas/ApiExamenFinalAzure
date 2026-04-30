@@ -51,23 +51,58 @@ namespace ApiExamenFinalAzure.Repositories
                 Pass = pass,
                 Imagen = foto
             };
-
-            //if (foto != null && foto.Length > 0)
-            //{
-            //    string blobname = foto.FileName;
-            //    using (Stream stream = foto.OpenReadStream())
-            //    {
-            //        await this.serviceStorage.UploadBlobAsync("marcasprueba", blobname, stream);
-            //    }
-
             
-            //serviceBlobs.UploadBlobAsync
             await this.context.Usuarios.AddAsync(usuario);
             await this.context.SaveChangesAsync();
         }
         public async Task<Usuario> LoginUsuario(string nombre, string pass)
         {
             return await this.context.Usuarios.Where(z => z.Nombre == nombre && z.Pass == pass).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<CompraCubo>> PedidosAsync(int idUser)
+        {
+            return await this.context.Compras
+                .Where(c => c.IdUsuario == idUser)
+                .OrderByDescending(c => c.FechaPedido)
+                .ToListAsync();
+        }
+
+        private async Task<int> GetMaxIdPedidoAsync()
+        {
+            if (!await this.context.Compras.AnyAsync())
+            {
+                return 1;
+            }
+
+            return await this.context.Compras.MaxAsync(c => c.IdPedido) + 1;
+        }
+
+        public async Task ComprarCubo(int idCubo, int idUsuario)
+        {
+            // Basic checks to avoid FK issues if the DB has constraints.
+            bool existeUsuario = await this.context.Usuarios.AnyAsync(u => u.IdUsuario == idUsuario);
+            if (!existeUsuario)
+            {
+                throw new InvalidOperationException($"El usuario {idUsuario} no existe.");
+            }
+
+            bool existeCubo = await this.context.Cubos.AnyAsync(c => c.IdCubo == idCubo);
+            if (!existeCubo)
+            {
+                throw new InvalidOperationException($"El cubo {idCubo} no existe.");
+            }
+
+            CompraCubo compra = new CompraCubo
+            {
+                IdPedido = await this.GetMaxIdPedidoAsync(),
+                IdCubo = idCubo,
+                IdUsuario = idUsuario,
+                FechaPedido = DateTime.UtcNow
+            };
+
+            await this.context.Compras.AddAsync(compra);
+            await this.context.SaveChangesAsync();
         }
     }
 }

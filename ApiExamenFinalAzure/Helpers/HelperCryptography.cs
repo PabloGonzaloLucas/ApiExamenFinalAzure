@@ -1,5 +1,4 @@
 ﻿using ApiExamenFinalAzure.Models;
-using Azure.Security.KeyVault.Secrets;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -7,40 +6,24 @@ namespace ApiExamenFinalAzure.Helpers
 {
     public static class HelperCryptography
     {
-        private static string KeyCifrado;
-        private static string ApiUrl;
-        private static KeyVaultAccesorModel keyVaultSecrets;
-        private static SecretClient secretClient;
+        private static string KeyCifrado = string.Empty;
 
-
- 
-
-        public static void Initialize(IConfiguration configuration, SecretClient client)
+        public static void Initialize(IConfiguration configuration, KeyVaultAccesorModel keyVaultSecrets)
         {
-            ////KeyCifrado = configuration.GetValue<string>("Cypher:Key")
-            //keyVaultSecrets = keyVaultSecret;
-            //KeyCifrado = keyVaultSecret.CypherKey;
-
-            secretClient = client;
-            KeyVaultSecret secretCypher = secretClient.GetSecret("secretkeycypherprueba");
-            KeyCifrado = secretCypher.Value;
-
+            // Use the cypher key already resolved from Key Vault at startup
+            KeyCifrado = keyVaultSecrets.CypherKey ?? string.Empty;
         }
 
         public static string CifrarString(string data)
         {
-            //CONVERTIMOS A BYTES LA KEY
             byte[] keyData = Encoding.UTF8.GetBytes(KeyCifrado);
-            string res = EncryptString(keyData, data);
-            return res;
+            return EncryptString(keyData, data);
         }
 
         public static string DescifrarString(string data)
         {
-            //CONVERTIMOS A BYTES LA KEY
             byte[] keyData = Encoding.UTF8.GetBytes(KeyCifrado);
-            string res = DecryptString(keyData, data);
-            return res;
+            return DecryptString(keyData, data);
         }
 
         private static string EncryptString(byte[] key, string plainText)

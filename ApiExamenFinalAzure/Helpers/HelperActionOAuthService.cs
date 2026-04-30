@@ -29,13 +29,13 @@ namespace ApiExamenFinalAzure.Helpers
         {
             this.secretclient = client;
 
-            KeyVaultSecret secretIssuer = this.secretclient.GetSecret("secretissuerexamenpgl");
+            KeyVaultSecret secretIssuer = this.secretclient.GetSecret("Issuer");
             this.Issuer = secretIssuer.Value;
 
-            KeyVaultSecret secretAudience = this.secretclient.GetSecret("secretaudienceexamenpgl");
+            KeyVaultSecret secretAudience = this.secretclient.GetSecret("Audience");
             this.Audience = secretAudience.Value;
 
-            KeyVaultSecret secretKey = this.secretclient.GetSecret("secretkeyprueba");
+            KeyVaultSecret secretKey = this.secretclient.GetSecret("SecretKey");
             this.SecretKey = secretKey.Value;
         }
 
